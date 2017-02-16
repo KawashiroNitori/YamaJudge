@@ -163,4 +163,5 @@ PyMODINIT_FUNC PyInit__judger(void) {
     PyModule_AddIntConstant(module, "ERROR_SETUID_FAILED", SETUID_FAILED);
     PyModule_AddIntConstant(module, "ERROR_EXECVE_FAILED", EXECVE_FAILED);
     PyModule_AddIntConstant(module, "ERROR_SPJ_ERROR", SPJ_ERROR);
+    return module;
 }

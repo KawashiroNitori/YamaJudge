@@ -119,7 +119,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
 
 
 static PyMethodDef judger_methods[] = {
-    {"run", (PyCFunction) judger_run, METH_KEYWORDS, NULL},
+    {"run", (PyCFunction) judger_run, METH_VARARGS | METH_KEYWORDS, NULL},
     {NULL, NULL, 0, NULL}
 };
 

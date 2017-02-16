@@ -46,11 +46,11 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
         if (!next) {
             break;
         }
-        if (!PyString_Check(next)) {
+        if (!PyUnicode_Check(next)) {
             // Py_DECREF(next);
             RaiseValueError("arg item must be a string");
         }
-        _config.args[count] = PyString_AsString(next);
+        _config.args[count] = PyUnicode_AsUTF8(next);
         // Py_DECREF(next);
         count++;
     }
@@ -70,11 +70,11 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
         if (!next) {
             break;
         }
-        if (!PyString_Check(next)) {
+        if (!PyUnicode_Check(next)) {
             // Py_DECREF(next);
             RaiseValueError("env item must be a string");
         }
-        _config.env[count] = PyString_AsString(next);
+        _config.env[count] = PyUnicode_AsUTF8(next);
         // Py_DECREF(next);
         count++;
     }
@@ -82,8 +82,8 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     // Py_DECREF(env_list);
     // Py_DECREF(env_iter);
     
-    if (PyString_Check(rule_name)) {
-        _config.seccomp_rule_name = PyString_AsString(rule_name);
+    if (PyUnicode_Check(rule_name)) {
+        _config.seccomp_rule_name = PyUnicode_AsUTF8(rule_name);
         // Py_DECREF(rule_path);
     }
     else {

@@ -136,7 +136,7 @@ static PyModuleDef judger_def = {
 };
 
 
-PyMODINIT_FUNC init__judger(void) {
+PyMODINIT_FUNC PyInit__judger(void) {
 #if PY_MAJOR_VERSION >= 3
     PyObject *module = PyModule_Create(&judger_def);
 #else

@@ -60,18 +60,16 @@ def login():
 
 
 def heartbeat():
-    timer = Timer(
-        30.0,
-        functools.partial(
-            get,
-            url=options.options.api_host + options.options.api_heartbeat))
+    _logger.debug('Send heartbeat request...')
+    get(options.options.api_host + options.options.api_heartbeat)
+    timer = Timer(30.0, heartbeat)
     timer.start()
-    _logger.info('Heartbeat timer started.')
 
 
 def init():
     login()
     heartbeat()
+    _logger.info('Heartbeat timer started.')
 
 
 def begin_judge(rid: objectid.ObjectId, status: int=record.STATUS_FETCHED):

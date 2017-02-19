@@ -141,6 +141,7 @@ class JudgeTask(object):
             _logger.info('Judge workspace created.')
             os.chdir(str(work_dir))
             self.prepare_file(work_dir)
+            self.next_judge(status=record.STATUS_COMPILING)
             compile_result, compiler_text = self.compile(work_dir)
             self.next_judge(compiler_text=compiler_text)
             if compile_result != _judger.RESULT_SUCCESS:  # Compile Error
@@ -165,6 +166,7 @@ class JudgeTask(object):
                 total_time_ms += result['cpu_time']
                 max_memory = max(max_memory, result['memory'])
                 final_result = max(final_result, result['result'])
+
                 self.next_judge(progress=index / len(self.data),
                                 case=True,
                                 case_status=result['result'],

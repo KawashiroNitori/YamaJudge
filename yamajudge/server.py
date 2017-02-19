@@ -28,7 +28,6 @@ def on_message(channel, method, header, body):
     except Exception as e:
         _logger.error(e)
         request.end_judge(rid, record.STATUS_SYSTEM_ERROR)
-        raise e
     finally:
         channel.basic_ack(method.delivery_tag)
 

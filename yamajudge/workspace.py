@@ -6,14 +6,20 @@ from bson import objectid
 import yamajudge
 from yamajudge.util import options
 
-options.define('work_dir', default='run', help='Record work directory.')
+options.define('run_dir', default='run', help='Record work directory.')
 _logger = logging.getLogger(__name__)
 
 
 class WorkSpace(object):
 
     def __init__(self, rid: objectid.ObjectId):
-        self.path = os.path.join(os.path.dirname(os.path.dirname(yamajudge.__file__)), options.options.work_dir, rid)
+        main_folder = os.path.dirname(os.path.dirname(yamajudge.__file__))
+        run_folder = os.path.join(main_folder, options.options.run_dir)
+        try:
+            os.mkdir(run_folder)
+        except FileExistsError:
+            pass
+        self.path = os.path.join(run_folder, rid)
 
     def __str__(self):
         return self.path

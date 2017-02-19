@@ -26,7 +26,7 @@ _api_judge_main = options.options.api_host + options.options.api_judge_main
 
 
 def post(url: str, **kwargs):
-    params = parse.urlencode(kwargs)
+    params = parse.urlencode(kwargs, encoding='utf-8')
     req = request.Request(url=url,
                           data=params,
                           headers={'Accept': 'application/json'})

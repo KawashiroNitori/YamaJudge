@@ -62,7 +62,7 @@ class JudgeTask(object):
         with open(work_dir.join(self.config['src_name']), 'w') as file:
             file.write(self.code)
         shutil.copy(os.path.join(os.path.dirname(os.path.dirname(yamajudge.__file__)),
-                                 'java_policy'), work_dir)
+                                 'java_policy'), str(work_dir))
 
     def compile(self, work_dir):
         command = self.config['compile_command'].split(' ')
@@ -133,7 +133,7 @@ class JudgeTask(object):
 
     def run(self):
         with workspace.WorkSpace(self.rid) as work_dir:
-            os.chdir(work_dir)
+            os.chdir(str(work_dir))
             self.prepare_file(work_dir)
             compile_result, compiler_text = self.compile(work_dir)
             self.next_judge(compiler_text=compiler_text)

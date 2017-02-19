@@ -39,6 +39,16 @@ def post(url: str, **kwargs):
     return res or None
 
 
+def get(url: str):
+    req = request.Request(url=url, headers={'Accept': 'application/json'})
+    try:
+        with _lock:
+            res = request.urlopen(req)
+    except Exception as e:
+        raise e
+    return res or None
+
+
 def login():
     res = post(url=options.options.api_host + options.options.api_login,
                uname=options.options.judger_username,
@@ -53,7 +63,7 @@ def heartbeat():
     timer = Timer(
         30.0,
         functools.partial(
-            post,
+            get,
             url=options.options.api_host + options.options.api_heartbeat))
     timer.start()
     _logger.info('Heartbeat timer started.')

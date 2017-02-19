@@ -13,7 +13,7 @@ from yamajudge import error
 
 options.define('api_host', default='http://localhost', help='Judge API hostname.')
 options.define('api_heartbeat', default='/judge/heartbeat', help='Judge API heartbeat.')
-options.define('api_judge_main', default='/judge/', help='Main judge API.')
+options.define('api_judge_main', default='/judge/main', help='Main judge API.')
 options.define('api_login', default='/login', help='User login API.')
 options.define('judger_username', default='judger', help='Username of judger.')
 options.define('judger_password', default='judger', help='Password of judger.')
@@ -75,13 +75,13 @@ def init():
 
 
 def begin_judge(rid: objectid.ObjectId, status: int=record.STATUS_FETCHED):
-    post(_api_judge_main + str(rid), operation='begin', status=status)
+    post(_api_judge_main, operation='begin', rid=str(rid), status=status)
 
 
 def next_judge(rid: objectid.ObjectId, **kwargs):
-    post(_api_judge_main + str(rid), operation='next', **kwargs)
+    post(_api_judge_main, operation='next', rid=str(rid), **kwargs)
 
 
 def end_judge(rid: objectid.ObjectId, status: int, time_ms: int=0, memory_kb: int=0):
-    post(_api_judge_main + str(rid), operation='end',
+    post(_api_judge_main, operation='end', rid=str(rid),
          status=status, time_ms=time_ms, memory_kb=memory_kb)

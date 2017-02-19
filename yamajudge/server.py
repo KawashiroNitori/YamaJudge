@@ -14,6 +14,7 @@ options.define('log_format',
                default=('%(log_color)s[%(levelname).1s '
                         '%(asctime)s %(module)s:%(lineno)d]%(reset)s %(message)s'),
                help='Log format.')
+options.define('debug', default=False, help='Enable debug mode.')
 
 _logger = logging.getLogger(__name__)
 

@@ -21,7 +21,7 @@ options.define('judger_password', default='judger', help='Password of judger.')
 _logger = logging.getLogger(__name__)
 _opener = request.build_opener(request.HTTPCookieProcessor(cookiejar.CookieJar()))
 request.install_opener(_opener)
-_lock = Lock
+_lock = Lock()
 _api_judge_main = options.options.api_host + options.options.api_judge_main
 
 

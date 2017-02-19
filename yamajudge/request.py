@@ -75,13 +75,13 @@ def init():
 
 
 def begin_judge(rid: objectid.ObjectId, status: int=record.STATUS_FETCHED):
-    post(_api_judge_main + rid, operation='begin', status=status)
+    post(_api_judge_main + str(rid), operation='begin', status=status)
 
 
 def next_judge(rid: objectid.ObjectId, **kwargs):
-    post(_api_judge_main + rid, operation='next', **kwargs)
+    post(_api_judge_main + str(rid), operation='next', **kwargs)
 
 
 def end_judge(rid: objectid.ObjectId, status: int, time_ms: int=0, memory_kb: int=0):
-    post(_api_judge_main + rid, operation='end',
+    post(_api_judge_main + str(rid), operation='end',
          status=status, time_ms=time_ms, memory_kb=memory_kb)

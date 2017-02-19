@@ -254,4 +254,3 @@ crashlytics-build.properties
 fabric.properties
 
 cmake-build-*
-judge_client.cc

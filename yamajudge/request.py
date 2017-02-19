@@ -32,7 +32,9 @@ def post(url: str, **kwargs):
                           data=data,
                           headers={'Accept': 'application/json'})
     try:
+        _logger.debug('Waiting for lock...')
         with _lock:
+            _logger.debug('Lock acquired.')
             res = request.urlopen(req)
     except Exception as e:
         raise e
@@ -42,7 +44,9 @@ def post(url: str, **kwargs):
 def get(url: str):
     req = request.Request(url=url, headers={'Accept': 'application/json'})
     try:
+        _logger.debug('Waiting for lock...')
         with _lock:
+            _logger.debug('Lock acquired.')
             res = request.urlopen(req)
     except Exception as e:
         raise e

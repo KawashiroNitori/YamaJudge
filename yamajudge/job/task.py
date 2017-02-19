@@ -26,7 +26,7 @@ class JudgeTask(object):
         try:
             rdoc, pdoc, ddoc = self.fetch_data()
         except error.Error as e:
-            _logger.error('Fetch record information failed: {0}'.format(e))
+            _logger.error('Fetch record information failed: {0}'.format(repr(e)))
             raise e
 
         _logger.info('Record data fetched.')

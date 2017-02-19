@@ -25,10 +25,9 @@ def on_message(channel, method, header, body):
         judge_task = task.JudgeTask(rid)
         judge_task.run()
     except Exception as e:
-        _logger.error(e)
+        _logger.error(repr(e))
         request.end_judge(rid, record.STATUS_SYSTEM_ERROR)
-    finally:
-        channel.basic_ack(method.delivery_tag)
+    channel.basic_ack(method.delivery_tag)
 
 
 def main():

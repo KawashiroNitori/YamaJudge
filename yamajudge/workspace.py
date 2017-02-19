@@ -19,7 +19,7 @@ class WorkSpace(object):
             os.mkdir(run_folder)
         except FileExistsError:
             pass
-        self.path = os.path.join(run_folder, rid)
+        self.path = os.path.join(run_folder, str(rid))
 
     def __str__(self):
         return self.path

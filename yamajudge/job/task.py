@@ -22,11 +22,14 @@ _logger = logging.getLogger(__name__)
 class JudgeTask(object):
     def __init__(self, rid: objectid.ObjectId):
         self.rid = rid
+        _logger.info('Judge request incoming: {0}'.format(rid))
         try:
             rdoc, pdoc, ddoc = self.fetch_data()
         except error.Error as e:
+            _logger.error('Fetch record information failed: {0}'.format(e))
             raise e
 
+        _logger.info('Record data fetched.')
         self.code = rdoc['code']
         self.lang = rdoc['lang']
         self.time_ms = pdoc['time_ms']
@@ -65,12 +68,14 @@ class JudgeTask(object):
                                  'java_policy'), str(work_dir))
 
     def compile(self, work_dir):
+        _logger.info('Compiling...')
         command = self.config['compile_command'].split(' ')
         compile_out = work_dir.join('compile.out')
         result = _judger.run(max_cpu_time=10000,
                              max_real_time=10000,
                              max_memory=_judger.UNLIMITED,
                              max_output_size=_judger.UNLIMITED,
+                             max_process_number=_judger.UNLIMITED,
                              exe_path=command[0],
                              input_path=work_dir.join(self.config['src_name']),
                              output_path=compile_out,
@@ -109,7 +114,7 @@ class JudgeTask(object):
                              log_path=log_file,
                              seccomp_rule_name=self.config['seccomp_rule'],
                              uid=pwd.getpwnam('nobody').pw_uid,
-                             gid=grp.getgrnam('nogroup').pw_gid)
+                             gid=grp.getgrnam('nogroup').gr_gid)
 
         out_ans = ''
         if result['result'] == _judger.RESULT_SUCCESS:
@@ -133,11 +138,13 @@ class JudgeTask(object):
 
     def run(self):
         with workspace.WorkSpace(self.rid) as work_dir:
+            _logger.info('Judge workspace created.')
             os.chdir(str(work_dir))
             self.prepare_file(work_dir)
             compile_result, compiler_text = self.compile(work_dir)
             self.next_judge(compiler_text=compiler_text)
             if compile_result != _judger.RESULT_SUCCESS:  # Compile Error
+                _logger.info('Compile Error.')
                 self.end_judge(record.STATUS_COMPILE_ERROR)
                 return
             # Execute your program
@@ -147,6 +154,7 @@ class JudgeTask(object):
             self.next_judge(status=record.STATUS_JUDGING, progress=0.0)
 
             for index, case in enumerate(self.data, start=1):
+                _logger.info('Running case {0}/{1}...'.format(index, len(self.data)))
                 result, user_out = self.execute(work_dir, case[0])
                 judge_text = ''
                 if result['result'] == _judger.RESULT_SUCCESS:
@@ -171,4 +179,5 @@ class JudgeTask(object):
                                    memory_kb=max_memory)
                     return
 
+            _logger.info('Judge ended.')
             self.end_judge(status=final_result, time_ms=total_time_ms, memory_kb=max_memory)

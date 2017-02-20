@@ -96,6 +96,7 @@ class JudgeTask(object):
     def execute(self, work_dir, input_str):
         in_file = work_dir.join('in_file')
         out_file = work_dir.join('out_file')
+        err_file = work_dir.join('err_file')
         log_file = work_dir.join('runner.out')
         command = self.config['run_command'].format(memory_kb=self.memory_kb).split(' ')
         with open(in_file, 'w') as file:
@@ -108,7 +109,7 @@ class JudgeTask(object):
                              exe_path=command[0],
                              input_path=in_file,
                              output_path=out_file,
-                             error_path=out_file,
+                             error_path=err_file,
                              args=command[1:],
                              env=['PATH=' + os.getenv('PATH')],
                              log_path=log_file,
@@ -120,6 +121,14 @@ class JudgeTask(object):
         if result['result'] == _judger.RESULT_SUCCESS:
             with open(out_file) as file:
                 out_ans = file.read()
+        # check memory out in stderr
+        if result['result'] == record.STATUS_RUNTIME_ERROR:
+            with open(err_file) as file:
+                err_out = file.read()
+            if 'java.lang.OutOfMemoryError' in err_out:
+                result['result'] = record.STATUS_MEMORY_LIMIT_EXCEEDED
+                result['memory'] = self.memory_kb * 1024
+
         result['memory'] //= 1024
         return result, out_ans
 

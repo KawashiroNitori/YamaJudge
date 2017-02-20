@@ -9,6 +9,7 @@
 #include <wait.h>
 #include <errno.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <string.h>
 
 #include <sys/time.h>
@@ -60,6 +61,8 @@ void run(struct config *_config, struct result *_result) {
     if (pipe(pipes) != 0) {
         ERROR_EXIT(PIPE_FAILED);
     }
+    int flags = fcntl(pipes[0], F_GETFL, 0);
+    fcntl(pipes[0], F_SETFL, flags | O_NONBLOCK);
 
     // record current time
     gettimeofday(&start, NULL);

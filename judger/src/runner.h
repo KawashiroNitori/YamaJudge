@@ -15,6 +15,9 @@
     {\
         LOG_ERROR(error_code);  \
         _result->error = error_code; \
+        _result->result = SYSTEM_ERROR; \
+        close(pipes[0]); \
+        close(pipes[1]); \
         log_close(log_fp);  \
         return; \
     }

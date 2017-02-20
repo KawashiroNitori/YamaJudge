@@ -159,7 +159,8 @@ void run(struct config *_config, struct result *_result) {
             _result->result = CPU_TIME_LIMIT_EXCEEDED;
         }
 
-        close(pipes[0], pipes[1]);
+        close(pipes[0]);
+        close(pipes[1]);
         log_close(log_fp);
     }
 }

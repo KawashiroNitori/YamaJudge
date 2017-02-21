@@ -147,48 +147,53 @@ class JudgeTask(object):
 
     def run(self):
         with workspace.WorkSpace(self.rid) as work_dir:
-            _logger.info('Judge workspace created.')
-            os.chdir(str(work_dir))
-            self.prepare_file(work_dir)
-            self.next_judge(status=record.STATUS_COMPILING)
-            compile_result, compiler_text = self.compile(work_dir)
-            self.next_judge(compiler_text=compiler_text)
-            if compile_result != _judger.RESULT_SUCCESS:  # Compile Error
-                _logger.info('Compile Error.')
-                self.end_judge(record.STATUS_COMPILE_ERROR)
-                return
-            # Execute your program
-            total_time_ms = 0
-            max_memory = 0
-            final_result = record.STATUS_ACCEPTED
-            self.next_judge(status=record.STATUS_JUDGING, progress=0.0)
-
-            for index, case in enumerate(self.data, start=1):
-                _logger.info('Running case {0}/{1}...'.format(index, len(self.data)))
-                result, user_out = self.execute(work_dir, case[0])
-                judge_text = ''
-                if result['result'] == _judger.RESULT_SUCCESS:
-                    # Have to judge
-                    result['result'], judge_text = self.judge(user_out, case[1])
-
-                # Update record information.
-                total_time_ms += result['cpu_time']
-                max_memory = max(max_memory, result['memory'])
-                final_result = max(final_result, result['result'])
-
-                self.next_judge(progress=index / len(self.data),
-                                case=True,
-                                case_status=result['result'],
-                                case_time_ms=result['cpu_time'],
-                                case_memory_kb=result['memory'],
-                                case_judge_text=judge_text)
-                if result['result'] == record.STATUS_SYSTEM_ERROR or \
-                        result['result'] == record.STATUS_TIME_LIMIT_EXCEEDED:
-                    # TLE or SE will stop judge immediately
-                    self.end_judge(status=result['result'],
-                                   time_ms=total_time_ms,
-                                   memory_kb=max_memory)
+            try:
+                _logger.info('Judge workspace created.')
+                os.chdir(str(work_dir))
+                self.prepare_file(work_dir)
+                self.next_judge(status=record.STATUS_COMPILING)
+                compile_result, compiler_text = self.compile(work_dir)
+                self.next_judge(compiler_text=compiler_text)
+                if compile_result != _judger.RESULT_SUCCESS:  # Compile Error
+                    _logger.info('Compile Error.')
+                    self.end_judge(record.STATUS_COMPILE_ERROR)
                     return
+                # Execute your program
+                total_time_ms = 0
+                max_memory = 0
+                final_result = record.STATUS_ACCEPTED
+                self.next_judge(status=record.STATUS_JUDGING, progress=0.0)
 
-            _logger.info('Judge ended.')
-            self.end_judge(status=final_result, time_ms=total_time_ms, memory_kb=max_memory)
+                for index, case in enumerate(self.data, start=1):
+                    _logger.info('Running case {0}/{1}...'.format(index, len(self.data)))
+                    result, user_out = self.execute(work_dir, case[0])
+                    judge_text = ''
+                    if result['result'] == _judger.RESULT_SUCCESS:
+                        # Have to judge
+                        result['result'], judge_text = self.judge(user_out, case[1])
+
+                    # Update record information.
+                    total_time_ms += result['cpu_time']
+                    max_memory = max(max_memory, result['memory'])
+                    final_result = max(final_result, result['result'])
+
+                    self.next_judge(progress=index / len(self.data),
+                                    case=True,
+                                    case_status=result['result'],
+                                    case_time_ms=result['cpu_time'],
+                                    case_memory_kb=result['memory'],
+                                    case_judge_text=judge_text)
+                    if result['result'] == record.STATUS_SYSTEM_ERROR or \
+                            result['result'] == record.STATUS_TIME_LIMIT_EXCEEDED:
+                        # TLE or SE will stop judge immediately
+                        self.end_judge(status=result['result'],
+                                       time_ms=total_time_ms,
+                                       memory_kb=max_memory)
+                        return
+
+                _logger.info('Judge ended.')
+                self.end_judge(status=final_result, time_ms=total_time_ms, memory_kb=max_memory)
+            except Exception as e:
+                _logger.error('An error occurred: {0}'.format(repr(e)))
+                work_dir.dump()
+                raise e

@@ -1,10 +1,7 @@
 import functools
+import requests
 import logging
-from urllib import request
-from urllib import parse
-from http import cookiejar
 from threading import Timer
-from threading import Lock
 from bson import objectid
 
 from yamajudge.util import options
@@ -19,35 +16,21 @@ options.define('judger_username', default='judger', help='Username of judger.')
 options.define('judger_password', default='judger', help='Password of judger.')
 
 _logger = logging.getLogger(__name__)
-_opener = request.build_opener(request.HTTPCookieProcessor(cookiejar.CookieJar()))
-request.install_opener(_opener)
-_lock = Lock()
+_session = requests.Session()
 _api_judge_main = options.options.api_host + options.options.api_judge_main
 
 
 def post(url: str, **kwargs):
-    params = parse.urlencode(kwargs)
-    data = params.encode('utf-8')
-    req = request.Request(url=url,
-                          data=data,
-                          headers={'Accept': 'application/json'})
     try:
-        _logger.debug('Waiting for lock...')
-        with _lock:
-            _logger.debug('Lock acquired.')
-            res = request.urlopen(req)
+        res = _session.post(url=url, data=kwargs)
     except Exception as e:
         raise e
     return res or None
 
 
-def get(url: str):
-    req = request.Request(url=url, headers={'Accept': 'application/json'})
+def get(url: str, **kwargs):
     try:
-        _logger.debug('Waiting for lock...')
-        with _lock:
-            _logger.debug('Lock acquired.')
-            res = request.urlopen(req)
+        res = _session.get(url=url, params=kwargs)
     except Exception as e:
         raise e
     return res or None
@@ -58,7 +41,7 @@ def login():
                uname=options.options.judger_username,
                password=options.options.judger_password,
                remember_me=True)
-    if res.status != 200:
+    if res.status_code != 200:
         raise error.LoginError(options.options.judger_username)
     _logger.info('Use username login: {0}'.format(options.options.judger_username))
 

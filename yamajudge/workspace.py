@@ -1,4 +1,5 @@
 import logging
+import time
 import os
 import shutil
 from bson import objectid
@@ -13,13 +14,15 @@ _logger = logging.getLogger(__name__)
 class WorkSpace(object):
 
     def __init__(self, rid: objectid.ObjectId):
-        main_folder = os.path.dirname(os.path.dirname(yamajudge.__file__))
-        run_folder = os.path.join(main_folder, options.options.run_dir)
+        self.rid = str(rid)
+        self.main_folder = os.path.dirname(os.path.dirname(yamajudge.__file__))
+        self.dump_folder = os.path.join(self.main_folder, 'dumps')
+        self.run_folder = os.path.join(self.main_folder, options.options.run_dir)
         try:
-            os.mkdir(run_folder)
+            os.mkdir(self.run_folder)
         except FileExistsError:
             pass
-        self.path = os.path.join(run_folder, str(rid))
+        self.path = os.path.join(self.run_folder, self.rid)
 
     def __str__(self):
         return self.path
@@ -51,3 +54,15 @@ class WorkSpace(object):
 
     def join(self, *args):
         return os.path.join(self.path, *args)
+
+    def dump(self):
+        try:
+            os.mkdir(self.dump_folder)
+        except FileExistsError:
+            pass
+        dump_path = 'dump_{0}_{1}'.format(time.strftime('%Y%m%d_%H%M%S'), self.rid)
+        dump_path = os.path.join(self.dump_folder, dump_path)
+        try:
+            shutil.move(self.path, dump_path)
+        except Exception as e:
+            raise e

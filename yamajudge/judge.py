@@ -19,6 +19,6 @@ def judge(user_out: str, correct_out: str, ignore_space=True):
     for i in range(len(ans_list[0])):
         if ans_list[0][i] != ans_list[1][i]:
             return record.STATUS_WRONG_ANSWER, \
-                   'Mismatch (%d): \'%s\' except \'%s\'.' % (i + 1, ans_list[0][i], ans_list[1][i])
+                   'Mismatch:%d: \'%s\' except \'%s\'.' % (i + 1, ans_list[0][i], ans_list[1][i])
 
     return record.STATUS_ACCEPTED, 'Well done!'

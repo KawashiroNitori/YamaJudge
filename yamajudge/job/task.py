@@ -74,7 +74,7 @@ class JudgeTask(object):
         result = _judger.run(max_cpu_time=10000,
                              max_real_time=10000,
                              max_memory=_judger.UNLIMITED,
-                             max_output_size=_judger.UNLIMITED,
+                             max_output_size=4 * 1024,   # 4 KiB
                              max_process_number=_judger.UNLIMITED,
                              exe_path=command[0],
                              input_path=work_dir.join(self.config['src_name']),
@@ -104,7 +104,7 @@ class JudgeTask(object):
         result = _judger.run(max_cpu_time=self.time_ms,
                              max_real_time=self.time_ms * 5,
                              max_memory=self.memory_kb * 1024 if self.lang != 'java' else _judger.UNLIMITED,
-                             max_output_size=4 * 1024 * 1024,   # 4MiB
+                             max_output_size=1024 * 1024,   # 1 MiB
                              max_process_number=_judger.UNLIMITED,
                              exe_path=command[0],
                              input_path=in_file,
@@ -149,9 +149,11 @@ class JudgeTask(object):
         with workspace.WorkSpace(self.rid) as work_dir:
             try:
                 _logger.info('Judge workspace created.')
+                # Prepare some files
                 os.chdir(str(work_dir))
                 self.prepare_file(work_dir)
                 self.next_judge(status=record.STATUS_COMPILING)
+                # Compile your program
                 compile_result, compiler_text = self.compile(work_dir)
                 self.next_judge(compiler_text=compiler_text)
                 if compile_result != _judger.RESULT_SUCCESS:  # Compile Error
@@ -172,7 +174,7 @@ class JudgeTask(object):
                         # Have to judge
                         result['result'], judge_text = self.judge(user_out, case[1])
 
-                    # Update record information.
+                    # Update record information
                     total_time_ms += result['cpu_time']
                     max_memory = max(max_memory, result['memory'])
                     final_result = max(final_result, result['result'])

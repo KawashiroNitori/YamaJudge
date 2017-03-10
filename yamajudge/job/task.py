@@ -74,7 +74,7 @@ class JudgeTask(object):
         result = _judger.run(max_cpu_time=10000,
                              max_real_time=10000,
                              max_memory=_judger.UNLIMITED,
-                             max_output_size=4 * 1024,   # 4 KiB
+                             max_output_size=16 * 1024 * 1024,   # 16 MiB
                              max_process_number=_judger.UNLIMITED,
                              exe_path=command[0],
                              input_path=work_dir.join(self.config['src_name']),
@@ -90,7 +90,7 @@ class JudgeTask(object):
         compiler_text = ''
         if os.path.exists(compile_out):
             with open(compile_out) as file:
-                compiler_text = file.read().strip()
+                compiler_text = file.read(2 * 1024).strip()  # 2 KiB
         return result['result'], compiler_text
 
     def execute(self, work_dir, input_str):
@@ -101,8 +101,8 @@ class JudgeTask(object):
         command = self.config['run_command'].format(memory_kb=self.memory_kb).split(' ')
         with open(in_file, 'w') as file:
             file.write(input_str)
-        result = _judger.run(max_cpu_time=self.time_ms,
-                             max_real_time=self.time_ms * 5,
+        result = _judger.run(max_cpu_time=int(self.time_ms * self.config['time_rate']),
+                             max_real_time=int(self.time_ms * 5 * self.config['time_rate']),
                              max_memory=self.memory_kb * 1024 if self.lang != 'java' else _judger.UNLIMITED,
                              max_output_size=1024 * 1024,   # 1 MiB
                              max_process_number=_judger.UNLIMITED,

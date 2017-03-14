@@ -173,6 +173,8 @@ class JudgeTask(object):
                     if result['result'] == _judger.RESULT_SUCCESS:
                         # Have to judge
                         result['result'], judge_text = self.judge(user_out, case[1])
+                    if result['cpu_time'] < 10:
+                        result['cpu_time'] = 0
 
                     # Update record information
                     total_time_ms += result['cpu_time']

@@ -20,9 +20,15 @@ lang_config = {
         'exe_name': 'Main',
         'time_rate': 3.0,
         'compile_command': '/usr/bin/javac Main.java',
-        'run_command': '/usr/bin/java -Xss1M \
-                        -Xms16M -Xmx{memory_kb}k -Djava.security.policy==java_policy \
-                        -Djava.awt.headless=true Main',
+        'run_command': ' '.join([
+            '/usr/bin/java',
+            '-Xss1M',
+            '-Xms16M',
+            '-Xmx{memory_kb}k',
+            '-Djava.security.policy==java_policy',
+            '-Djava.awt.headless=true',
+            'Main'
+        ]),
         'seccomp_rule': None,
     }
 }

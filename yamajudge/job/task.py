@@ -37,6 +37,12 @@ class JudgeTask(object):
         self.data = ddoc['data']
         self.judge_mode = pdoc.get('judge_mode', record.MODE_COMPARE_IGNORE_SPACE)
         self.config = language.lang_config[rdoc['lang']]
+        if self.judge_mode == record.MODE_SPECIAL_JUDGE:
+            try:
+                self.judger_bin = pdoc['judger_bin']
+            except KeyError as e:
+                _logger.error('This problem is Special Judge but it haven\'t judger.')
+                raise e
 
     def fetch_data(self):
         record_coll = db.Collection('record')
@@ -64,6 +70,10 @@ class JudgeTask(object):
     def prepare_file(self, work_dir):
         with open(work_dir.join(self.config['src_name']), 'w') as file:
             file.write(self.code)
+        if self.judge_mode == record.MODE_SPECIAL_JUDGE:
+            with open(work_dir.join('judger'), 'wb') as file:
+                file.write(self.judger_bin)
+            os.chmod(work_dir.join('judger'), 0o755)
         shutil.copy(os.path.join(os.path.dirname(os.path.dirname(yamajudge.__file__)),
                                  'java_policy'), str(work_dir))
 
@@ -119,8 +129,12 @@ class JudgeTask(object):
 
         out_ans = ''
         if result['result'] == _judger.RESULT_SUCCESS:
-            with open(out_file) as file:
-                out_ans = file.read()
+            try:
+                with open(out_file) as file:
+                    out_ans = file.read()
+            except ValueError:
+                out_ans = ''
+
         # check memory out in stderr
         if result['result'] == record.STATUS_RUNTIME_ERROR:
             with open(err_file) as file:
@@ -132,12 +146,42 @@ class JudgeTask(object):
         result['memory'] //= 1024
         return result, out_ans
 
-    def judge(self, user_out, correct_out):
+    def judge(self, work_dir, user_out, correct_out):
         # TODO: add special judge.
         if self.judge_mode == record.MODE_COMPARE_IGNORE_SPACE:
             return judge.judge(user_out, correct_out, ignore_space=True)
-        else:
+        elif self.judge_mode == record.MODE_COMPARE:
             return judge.judge(user_out, correct_out, ignore_space=False)
+        elif self.judge_mode == record.MODE_SPECIAL_JUDGE:
+            return self.special_judge(work_dir, user_out, correct_out)
+
+    def special_judge(self, work_dir, user_out, correct_out):
+        in_file = work_dir.join('in_file')
+        user_file = work_dir.join('out_file')
+        out_file = work_dir.join('correct_file')
+        judger_err_file = work_dir.join('judger_err_file')
+        with open(work_dir.join('correct_file'), 'w') as file:
+            file.write(correct_out)
+        log_file = work_dir.join('judger.out')
+        result = _judger.run(max_cpu_time=int(self.time_ms * self.config['time_rate']),
+                             max_real_time=int(self.time_ms * 5 * self.config['time_rate']),
+                             max_memory=self.memory_kb * 1024 if self.lang != 'java' else _judger.UNLIMITED,
+                             max_output_size=1024 * 1024,   # 1 MiB
+                             max_process_number=_judger.UNLIMITED,
+                             exe_path=work_dir.join('judger'),
+                             input_path='/dev/null',
+                             output_path=log_file,
+                             error_path=judger_err_file,
+                             args=[in_file, out_file, user_file],
+                             env=['PATH=' + os.getenv('PATH')],
+                             log_path='/dev/null',
+                             seccomp_rule_name=None,
+                             uid=pwd.getpwnam('judger').pw_uid,
+                             gid=grp.getgrnam('judger').gr_gid)
+        with open(log_file) as file:
+            judger_out = file.read()
+        judge_res = record.STATUS_ACCEPTED if result['exit_code'] == 0 else record.STATUS_WRONG_ANSWER
+        return judge_res, 'Judger Output: {0}'.format(judger_out)
 
     def next_judge(self, **kwargs):
         request.next_judge(self.rid, **kwargs)
@@ -172,7 +216,7 @@ class JudgeTask(object):
                     judge_text = ''
                     if result['result'] == _judger.RESULT_SUCCESS:
                         # Have to judge
-                        result['result'], judge_text = self.judge(user_out, case[1])
+                        result['result'], judge_text = self.judge(work_dir, user_out, case[1])
                     if result['cpu_time'] < 10:
                         result['cpu_time'] = 0
 

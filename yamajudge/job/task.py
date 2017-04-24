@@ -3,6 +3,7 @@ import os
 import shutil
 import pwd
 import grp
+import base64
 from bson import objectid
 
 import _judger
@@ -72,7 +73,7 @@ class JudgeTask(object):
             file.write(self.code)
         if self.judge_mode == record.MODE_SPECIAL_JUDGE:
             with open(work_dir.join('judger'), 'wb') as file:
-                file.write(self.judger_bin)
+                file.write(base64.b64decode(self.judger_bin))
             os.chmod(work_dir.join('judger'), 0o755)
         shutil.copy(os.path.join(os.path.dirname(os.path.dirname(yamajudge.__file__)),
                                  'java_policy'), str(work_dir))

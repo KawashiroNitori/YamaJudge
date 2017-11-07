@@ -70,7 +70,7 @@ class JudgeTask(object):
 
     def prepare_file(self, work_dir):
         with open(work_dir.join(self.config['src_name']), 'w') as file:
-            file.write(self.code)
+            file.write(self.code.encode('utf8'))
         if self.judge_mode == record.MODE_SPECIAL_JUDGE:
             with open(work_dir.join('judger'), 'wb') as file:
                 file.write(base64.b64decode(self.judger_bin))

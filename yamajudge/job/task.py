@@ -69,7 +69,7 @@ class JudgeTask(object):
         return rdoc, pdoc, ddoc
 
     def prepare_file(self, work_dir):
-        with open(work_dir.join(self.config['src_name']), 'w') as file:
+        with open(work_dir.join(self.config['src_name']), 'wb') as file:
             file.write(self.code.encode('utf8'))
         if self.judge_mode == record.MODE_SPECIAL_JUDGE:
             with open(work_dir.join('judger'), 'wb') as file:
